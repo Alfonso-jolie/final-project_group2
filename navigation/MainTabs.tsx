@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import AdminMessagesScreen from '../screens/AdminMessagesScreen';
 import AdminSettingsScreen from '../screens/AdminSettingsScreen';
+import { useTheme } from '../context/ThemeContext';
 
 // Placeholder screens - you can replace these with your actual screens
 const HomeScreen = () => null;
@@ -12,6 +13,9 @@ const SettingsScreen = () => null;
 const Tab = createBottomTabNavigator();
 
 const MainTabs = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -26,10 +30,28 @@ const MainTabs = () => {
             iconName = 'home';
           }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          // Determine icon color based on theme and focus state
+          const iconColor = focused
+            ? '#007AFF' // Active color remains blue
+            : isDark
+            ? '#666' // Inactive color dark mode
+            : 'gray'; // Inactive color light mode
+
+          return <Ionicons name={iconName} size={size} color={iconColor} />;
         },
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#007AFF', // Keep active color consistent
+        tabBarInactiveTintColor: isDark ? '#666' : 'gray', // Apply dark mode inactive color
+        tabBarStyle: {
+          backgroundColor: isDark ? '#1e1e1e' : '#fff', // Apply dark mode background
+          borderTopColor: isDark ? '#333' : '#eee', // Apply dark mode border color
+        },
+        tabBarLabelStyle: {
+          color: isDark ? '#fff' : '#333', // Apply dark mode label color
+        },
+        headerStyle: {
+          backgroundColor: isDark ? '#1e1e1e' : '#fff', // Apply dark mode header background
+        },
+        headerTintColor: isDark ? '#fff' : '#333', // Apply dark mode header text/icon color
         gestureEnabled: false,
         swipeEnabled: false,
       })}
@@ -39,7 +61,7 @@ const MainTabs = () => {
         component={AdminMessagesScreen}
         options={{
           title: 'Messages',
-          headerShown: true,
+          // header styles are now defined in screenOptions
         }}
       />
       <Tab.Screen 
@@ -47,7 +69,7 @@ const MainTabs = () => {
         component={AdminSettingsScreen}
         options={{
           title: 'Settings',
-          headerShown: true,
+          // header styles are now defined in screenOptions
         }}
       />
     </Tab.Navigator>

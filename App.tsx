@@ -88,9 +88,16 @@ export default function App() {
               <Stack.Screen 
                 name="AdminChat" 
                 component={AdminChatScreen}
-                options={{
-                  headerShown: true,
-                  title: 'Chat', // Will be overridden by the screen title
+                options={({ navigation }) => {
+                  const { theme } = useTheme();
+                  return {
+                    headerShown: true,
+                    title: 'Chat', // Will be overridden by the screen title
+                    headerStyle: {
+                      backgroundColor: theme === 'light' ? '#fff' : '#1a1a1a',
+                    },
+                    headerTintColor: theme === 'light' ? '#000' : '#fff',
+                  };
                 }}
               />
               <Stack.Screen 

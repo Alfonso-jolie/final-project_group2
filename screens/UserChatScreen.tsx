@@ -26,26 +26,35 @@ const UserChatScreen = () => {
   const [message, setMessage] = useState('');
   const { theme } = useTheme();
 
-  // Filter messages to only show those sent by the current user to admin
-  const userMessages = messages.filter(msg => msg.senderId === CURRENT_USER_ID && msg.receiverId === 'admin123');
+  // Filter messages to show both sent and received messages between current user and admin
+  const chatMessages = messages.filter(
+    msg => (msg.senderId === CURRENT_USER_ID && msg.receiverId === 'admin123') ||
+           (msg.senderId === 'admin123' && msg.receiverId === CURRENT_USER_ID)
+  );
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      addMessage(CURRENT_USER_ID, 'admin123', message.trim()); // Send message from user to admin
+      addMessage(CURRENT_USER_ID, 'admin123', message.trim());
       setMessage('');
     } else {
       Alert.alert('Error', 'Please enter a message.');
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <View style={[styles.messageBubble, styles.userMessageBubble]}>
-      <Text style={styles.messageText}>{item.content}</Text>
-      <Text style={styles.timestampText}>
-        {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-      </Text>
-    </View>
-  );
+  const renderMessage = ({ item }: { item: Message }) => {
+    const isUserMessage = item.senderId === CURRENT_USER_ID;
+    return (
+      <View style={[
+        styles.messageBubble,
+        isUserMessage ? styles.userMessageBubble : styles.adminMessageBubble
+      ]}>
+        <Text style={styles.messageText}>{item.content}</Text>
+        <Text style={styles.timestampText}>
+          {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -58,7 +67,7 @@ const UserChatScreen = () => {
           {/* <Text style={styles.title}>Contact Support</Text> */}
 
           <FlatList
-            data={userMessages}
+            data={chatMessages}
             renderItem={renderMessage}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.messageList}
@@ -110,6 +119,10 @@ const styles = StyleSheet.create({
   userMessageBubble: {
     backgroundColor: '#007AFF',
     alignSelf: 'flex-end',
+  },
+  adminMessageBubble: {
+    backgroundColor: '#4A90E2',
+    alignSelf: 'flex-start',
   },
   messageText: {
     fontSize: 16,
