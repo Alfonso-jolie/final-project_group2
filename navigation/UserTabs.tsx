@@ -5,10 +5,13 @@ import HomeScreen from '../screens/HomeScreen';
 import DiaryScreen from '../screens/DiaryScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import MoreScreen from '../screens/MoreScreen';
+import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
 const UserTabs = () => {
+  const { theme } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -30,7 +33,14 @@ const UserTabs = () => {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: 'gray',
+        tabBarInactiveTintColor: theme === 'light' ? 'gray' : '#666',
+        tabBarStyle: {
+          backgroundColor: theme === 'light' ? '#fff' : '#1e1e1e',
+          borderTopColor: theme === 'light' ? '#eee' : '#333',
+        },
+        tabBarLabelStyle: {
+          color: theme === 'light' ? '#333' : '#fff',
+        },
         gestureEnabled: false,
         swipeEnabled: false,
       })}

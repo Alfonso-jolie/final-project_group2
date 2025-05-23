@@ -97,12 +97,18 @@ const MoreScreen = () => {
     <ScrollView style={screenStyles.container}>
       <View style={screenStyles.section}>
         <Text style={screenStyles.sectionTitle}>Account</Text>
-        <TouchableOpacity style={screenStyles.menuItem}>
+        <TouchableOpacity 
+          style={screenStyles.menuItem}
+          onPress={() => navigation.navigate('Profile')}
+        >
           <Ionicons name="person-outline" size={24} color={theme === 'light' ? '#333' : '#fff'} />
           <Text style={screenStyles.menuText}>Profile</Text>
           <Ionicons name="chevron-forward" size={24} color={theme === 'light' ? '#ccc' : '#555'} />
         </TouchableOpacity>
-        <TouchableOpacity style={screenStyles.menuItem}>
+        <TouchableOpacity 
+          style={screenStyles.menuItem}
+          onPress={() => Alert.alert('Coming Soon', 'Notifications feature will be available soon!')}
+        >
           <Ionicons name="notifications-outline" size={24} color={theme === 'light' ? '#333' : '#fff'} />
           <Text style={screenStyles.menuText}>Notifications</Text>
           <Ionicons name="chevron-forward" size={24} color={theme === 'light' ? '#ccc' : '#555'} />
@@ -111,7 +117,10 @@ const MoreScreen = () => {
 
       <View style={screenStyles.section}>
         <Text style={screenStyles.sectionTitle}>Support</Text>
-        <TouchableOpacity style={screenStyles.menuItem}>
+        <TouchableOpacity 
+          style={screenStyles.menuItem}
+          onPress={() => Alert.alert('Coming Soon', 'Help Center will be available soon!')}
+        >
           <Ionicons name="help-circle-outline" size={24} color={theme === 'light' ? '#333' : '#fff'} />
           <Text style={screenStyles.menuText}>Help Center</Text>
           <Ionicons name="chevron-forward" size={24} color={theme === 'light' ? '#ccc' : '#555'} />
@@ -128,17 +137,23 @@ const MoreScreen = () => {
 
       <View style={screenStyles.section}>
         <Text style={screenStyles.sectionTitle}>Other</Text>
-        <View style={screenStyles.menuItem}> {/* Use View for the item containing switch */}
-           <Ionicons name="color-palette-outline" size={24} color={theme === 'light' ? '#333' : '#fff'} />
-           <Text style={screenStyles.menuText}>Dark Mode</Text>
-           <Switch
-             value={theme === 'dark'}
-             onValueChange={toggleTheme}
-             trackColor={{ false: '#767577', true: '#81b0ff' }}
-             thumbColor={theme === 'dark' ? '#f5dd4b' : '#f4f3f4'}
-           />
-        </View>
-        <TouchableOpacity style={screenStyles.menuItem}>
+        <TouchableOpacity 
+          style={screenStyles.menuItem}
+          onPress={toggleTheme}
+        >
+          <Ionicons name="color-palette-outline" size={24} color={theme === 'light' ? '#333' : '#fff'} />
+          <Text style={screenStyles.menuText}>Dark Mode</Text>
+          <Switch
+            value={theme === 'dark'}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#767577', true: '#81b0ff' }}
+            thumbColor={theme === 'dark' ? '#f5dd4b' : '#f4f3f4'}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={screenStyles.menuItem}
+          onPress={() => Alert.alert('Coming Soon', 'Settings feature will be available soon!')}
+        >
           <Ionicons name="settings-outline" size={24} color={theme === 'light' ? '#333' : '#fff'} />
           <Text style={screenStyles.menuText}>Settings</Text>
           <Ionicons name="chevron-forward" size={24} color={theme === 'light' ? '#ccc' : '#555'} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Platform, Keyboard, TouchableWithoutFeedback, ScrollView, TouchableOpacity, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Platform, Keyboard, TouchableWithoutFeedback, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useFitness } from '../context/FitnessContext';
 
 const initialSections = [
@@ -115,145 +115,162 @@ export default function DiaryScreen() {
     setWaterAmount((Number(waterAmount) + preset).toString());
   };
 
+  const renderSection = ({ item: section }: { item: typeof initialSections[0] }) => (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>{section.label}</Text>
+      <FlatList
+        data={entries[section.key as keyof EntriesState]}
+        keyExtractor={(_, idx) => idx.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.entryRow}>
+            <Text style={styles.entryName}>{item.name}</Text>
+            <Text style={styles.entryCalories}>{item.calories} kcal</Text>
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.emptyText}>No entries yet.</Text>}
+      />
+      <View style={styles.inputRow}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          placeholder={`Add ${section.label === 'Exercise' ? 'exercise' : 'food/drink'}`}
+          placeholderTextColor="#888"
+          value={input[section.key as keyof InputStates].name}
+          onChangeText={text => setInput(prev => ({ ...prev, [section.key]: { ...prev[section.key as keyof InputStates], name: text } }))}
+        />
+        <TextInput
+          style={[styles.input, { width: 70, marginLeft: 8 }]}
+          placeholder="kcal"
+          placeholderTextColor="#888"
+          keyboardType="numeric"
+          value={input[section.key as keyof InputStates].calories}
+          onChangeText={text => setInput(prev => ({ ...prev, [section.key]: { ...prev[section.key as keyof InputStates], calories: text } }))}
+        />
+        <TouchableOpacity style={styles.addBtn} onPress={() => addEntry(section.key as keyof EntriesState)}>
+          <Text style={{ color: '#4FC3F7', fontWeight: 'bold', fontSize: 18 }}>+</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderWaterSection = () => (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Water</Text>
+      <View style={{ alignItems: 'center', marginVertical: 12 }}>
+        <Text style={{ fontSize: 60 }}>🥛🥛🥛</Text>
+      </View>
+      <View style={styles.waterGoalRow}>
+        <Text style={{ color: '#fff', fontSize: 16, marginRight: 8 }}>Goal:</Text>
+        <TextInput
+          style={[styles.input, { width: 80, textAlign: 'center', fontSize: 16 }]}
+          keyboardType="numeric"
+          value={waterGoalInput}
+          onChangeText={setWaterGoalInput}
+          placeholder={waterGoal.toString()}
+          placeholderTextColor="#888"
+        />
+        <Text style={{ color: '#fff', fontSize: 16, marginLeft: 4 }}>{waterUnit}</Text>
+        <TouchableOpacity
+          style={styles.setGoalBtn}
+          onPress={() => {
+            const val = Number(waterGoalInput);
+            if (val > 0) {
+              setWaterGoal(val);
+              setWaterGoalInput('');
+            }
+          }}
+        >
+          <Text style={{ color: '#4FC3F7', fontWeight: 'bold' }}>Set</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.progressBarBg}>
+        <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
+      </View>
+      <Text style={{ color: '#fff', fontSize: 15, alignSelf: 'center', marginBottom: 8 }}>{`${Math.round(totalWater)} / ${waterGoal} ${waterUnit} (${Math.round(progress * 100)}%)`}</Text>
+      <View style={styles.waterInputRow}>
+        <TextInput
+          style={[styles.input, { textAlign: 'center', fontSize: 22, width: 90 }]}
+          keyboardType="numeric"
+          value={waterAmount}
+          onChangeText={setWaterAmount}
+          placeholder="0"
+          placeholderTextColor="#888"
+        />
+        <Text style={{ color: '#fff', fontSize: 20, marginLeft: 8 }}>{waterUnit}</Text>
+      </View>
+      <View style={styles.waterPresetRow}>
+        {[250, 500, 1000].map((preset) => (
+          <TouchableOpacity key={preset} style={styles.waterPresetBtn} onPress={() => handleWaterPreset(preset)}>
+            <Text style={{ color: '#fff', fontSize: 16 }}>{`+${preset} ml`}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <TouchableOpacity style={styles.addWaterBtn} onPress={() => addWater()}>
+        <Text style={{ color: '#4FC3F7', fontWeight: 'bold', fontSize: 18 }}>Add Water</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.changeUnitRow} onPress={() => setWaterUnit(waterUnit === 'ml' ? 'oz' : 'ml')}>
+        <Text style={{ color: '#aaa', fontSize: 15 }}>⚙ Change Unit</Text>
+      </TouchableOpacity>
+      <FlatList
+        data={waterLog}
+        keyExtractor={(_, idx) => idx.toString()}
+        renderItem={({ item }) => (
+          <Text style={{ color: '#fff', fontSize: 15, marginTop: 2 }}>{`+${item.amount} ${item.unit}`}</Text>
+        )}
+        ListEmptyComponent={<Text style={styles.emptyText}>No water logged yet.</Text>}
+      />
+    </View>
+  );
+
+  const renderCaloriesSection = () => (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Calories</Text>
+      <View style={styles.row}><Text style={styles.label}>Goal</Text><Text style={styles.value}>{calorieGoal}</Text></View>
+      <View style={styles.row}><Text style={styles.label}>Food</Text><Text style={styles.value}>{foodCalories}</Text></View>
+      <View style={styles.row}><Text style={styles.label}>Exercise</Text><Text style={styles.value}>{exerciseCalories}</Text></View>
+      <View style={styles.row}><Text style={styles.label}>Remaining</Text><Text style={styles.value}>{remainingCalories}</Text></View>
+      <View style={styles.inputRow}>
+        <Text style={styles.inputLabel}>Food:</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          value={foodCalories.toString()}
+          onChangeText={(text: string) => setFoodCalories(Number(text) || 0)}
+          placeholder="0"
+          placeholderTextColor="#888"
+        />
+        <Text style={styles.inputLabel}>Exercise:</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          value={exerciseCalories.toString()}
+          onChangeText={(text: string) => setExerciseCalories(Number(text) || 0)}
+          placeholder="0"
+          placeholderTextColor="#888"
+        />
+      </View>
+    </View>
+  );
+
+  const renderHeader = () => (
+    <Text style={styles.title}>Diary</Text>
+  );
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32 }}>
-        <Text style={styles.title}>Diary</Text>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Calories</Text>
-          <View style={styles.row}><Text style={styles.label}>Goal</Text><Text style={styles.value}>{calorieGoal}</Text></View>
-          <View style={styles.row}><Text style={styles.label}>Food</Text><Text style={styles.value}>{foodCalories}</Text></View>
-          <View style={styles.row}><Text style={styles.label}>Exercise</Text><Text style={styles.value}>{exerciseCalories}</Text></View>
-          <View style={styles.row}><Text style={styles.label}>Remaining</Text><Text style={styles.value}>{remainingCalories}</Text></View>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Food:</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={foodCalories.toString()}
-              onChangeText={(text: string) => setFoodCalories(Number(text) || 0)}
-              placeholder="0"
-              placeholderTextColor="#888"
-            />
-            <Text style={styles.inputLabel}>Exercise:</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={exerciseCalories.toString()}
-              onChangeText={(text: string) => setExerciseCalories(Number(text) || 0)}
-              placeholder="0"
-              placeholderTextColor="#888"
-            />
-          </View>
-        </View>
-        {/* Food & Exercise Sections */}
-        {initialSections.map(section => (
-          <View style={styles.card} key={section.key}>
-            <Text style={styles.cardTitle}>{section.label}</Text>
-            <FlatList
-              data={entries[section.key as keyof EntriesState]}
-              keyExtractor={(_, idx) => idx.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.entryRow}>
-                  <Text style={styles.entryName}>{item.name}</Text>
-                  <Text style={styles.entryCalories}>{item.calories} kcal</Text>
-                </View>
-              )}
-              ListEmptyComponent={<Text style={styles.emptyText}>No entries yet.</Text>}
-            />
-            <View style={styles.inputRow}>
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                placeholder={`Add ${section.label === 'Exercise' ? 'exercise' : 'food/drink'}`}
-                placeholderTextColor="#888"
-                value={input[section.key as keyof InputStates].name}
-                onChangeText={text => setInput(prev => ({ ...prev, [section.key]: { ...prev[section.key as keyof InputStates], name: text } }))}
-              />
-              <TextInput
-                style={[styles.input, { width: 70, marginLeft: 8 }]}
-                placeholder="kcal"
-                placeholderTextColor="#888"
-                keyboardType="numeric"
-                value={input[section.key as keyof InputStates].calories}
-                onChangeText={text => setInput(prev => ({ ...prev, [section.key]: { ...prev[section.key as keyof InputStates], calories: text } }))}
-              />
-              <TouchableOpacity style={styles.addBtn} onPress={() => addEntry(section.key as keyof EntriesState)}>
-                <Text style={{ color: '#4FC3F7', fontWeight: 'bold', fontSize: 18 }}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-        {/* Water Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Water</Text>
-          {/* Water bottles emoji */}
-          <View style={{ alignItems: 'center', marginVertical: 12 }}>
-            <Text style={{ fontSize: 60 }}>🥛🥛🥛</Text>
-          </View>
-          {/* Water Goal Input */}
-          <View style={styles.waterGoalRow}>
-            <Text style={{ color: '#fff', fontSize: 16, marginRight: 8 }}>Goal:</Text>
-            <TextInput
-              style={[styles.input, { width: 80, textAlign: 'center', fontSize: 16 }]}
-              keyboardType="numeric"
-              value={waterGoalInput}
-              onChangeText={setWaterGoalInput}
-              placeholder={waterGoal.toString()}
-              placeholderTextColor="#888"
-            />
-            <Text style={{ color: '#fff', fontSize: 16, marginLeft: 4 }}>{waterUnit}</Text>
-            <TouchableOpacity
-              style={styles.setGoalBtn}
-              onPress={() => {
-                const val = Number(waterGoalInput);
-                if (val > 0) {
-                  setWaterGoal(val);
-                  setWaterGoalInput('');
-                }
-              }}
-            >
-              <Text style={{ color: '#4FC3F7', fontWeight: 'bold' }}>Set</Text>
-            </TouchableOpacity>
-          </View>
-          {/* Progress Bar */}
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
-          </View>
-          <Text style={{ color: '#fff', fontSize: 15, alignSelf: 'center', marginBottom: 8 }}>{`${Math.round(totalWater)} / ${waterGoal} ${waterUnit} (${Math.round(progress * 100)}%)`}</Text>
-          <View style={styles.waterInputRow}>
-            <TextInput
-              style={[styles.input, { textAlign: 'center', fontSize: 22, width: 90 }]}
-              keyboardType="numeric"
-              value={waterAmount}
-              onChangeText={setWaterAmount}
-              placeholder="0"
-              placeholderTextColor="#888"
-            />
-            <Text style={{ color: '#fff', fontSize: 20, marginLeft: 8 }}>{waterUnit}</Text>
-          </View>
-          <View style={styles.waterPresetRow}>
-            {[250, 500, 1000].map((preset) => (
-              <TouchableOpacity key={preset} style={styles.waterPresetBtn} onPress={() => handleWaterPreset(preset)}>
-                <Text style={{ color: '#fff', fontSize: 16 }}>{`+${preset} ml`}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <TouchableOpacity style={styles.addWaterBtn} onPress={() => addWater()}>
-            <Text style={{ color: '#4FC3F7', fontWeight: 'bold', fontSize: 18 }}>Add Water</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.changeUnitRow} onPress={() => setWaterUnit(waterUnit === 'ml' ? 'oz' : 'ml')}>
-            <Text style={{ color: '#aaa', fontSize: 15 }}>⚙ Change Unit</Text>
-          </TouchableOpacity>
-          <FlatList
-            data={waterLog}
-            keyExtractor={(_, idx) => idx.toString()}
-            renderItem={({ item }) => (
-              <Text style={{ color: '#fff', fontSize: 15, marginTop: 2 }}>{`+${item.amount} ${item.unit}`}</Text>
-            )}
-            ListEmptyComponent={<Text style={styles.emptyText}>No water logged yet.</Text>}
-          />
-        </View>
-      </ScrollView>
+      <FlatList
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        data={initialSections}
+        renderItem={renderSection}
+        keyExtractor={item => item.key}
+        ListHeaderComponent={
+          <>
+            {renderHeader()}
+            {renderCaloriesSection()}
+          </>
+        }
+        ListFooterComponent={renderWaterSection}
+      />
     </TouchableWithoutFeedback>
   );
 }
