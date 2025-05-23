@@ -1,36 +1,100 @@
-import { View, Text, StyleSheet, TextInput, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Platform, Keyboard, TouchableWithoutFeedback, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { useFitness } from '../context/FitnessContext';
 
+interface ProgressCardProps {
+  title: string;
+  current: number;
+  goal: number;
+  progress: number;
+  onGoalChange: (value: number) => void;
+  unit: string;
+}
+
 export default function ProgressScreen() {
-  const { steps, stepGoal, setStepGoal } = useFitness();
-  const progress = Math.min(100, (steps / stepGoal) * 100);
+  const { 
+    steps, 
+    stepGoal, 
+    setStepGoal,
+    waterIntake,
+    waterGoal,
+    setWaterGoal,
+    foodCalories,
+    exerciseCalories,
+    calorieGoal,
+    setCalorieGoal
+  } = useFitness();
+
+  const stepsProgress = Math.min(100, (steps / stepGoal) * 100);
+  const waterProgress = Math.min(100, (waterIntake / waterGoal) * 100);
+  const netCalories = foodCalories - exerciseCalories;
+  const calorieProgress = Math.min(100, (netCalories / calorieGoal) * 100);
+
+  const ProgressCard = ({ title, current, goal, progress, onGoalChange, unit }: ProgressCardProps) => (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={styles.steps}>{current}</Text>
+      <Text style={styles.goal}>Goal: {goal}{unit}</Text>
+      <View style={styles.progressBarBg}>
+        <View style={[styles.progressBarFill, {width: `${progress}%`}]} />
+      </View>
+      <Text style={styles.progressText}>{Math.floor(progress)}%</Text>
+      <View style={styles.inputRow}>
+        <Text style={styles.inputLabel}>Set Goal:</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          value={goal.toString()}
+          onChangeText={text => onGoalChange(Number(text) || 0)}
+          placeholder={goal.toString()}
+          placeholderTextColor="#888"
+        />
+      </View>
+    </View>
+  );
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Progress</Text>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Steps</Text>
-          <Text style={styles.steps}>{steps}</Text>
-          <Text style={styles.goal}>Goal: {stepGoal}</Text>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, {width: `${progress}%`}]} />
-          </View>
-          <Text style={styles.progressText}>{Math.floor(progress)}%</Text>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Set Goal:</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={stepGoal.toString()}
-              onChangeText={text => setStepGoal(Number(text) || 0)}
-              placeholder="10000"
-              placeholderTextColor="#888"
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View>
+            <Text style={styles.title}>Progress</Text>
+            <ProgressCard
+              title="Steps"
+              current={steps}
+              goal={stepGoal}
+              progress={stepsProgress}
+              onGoalChange={setStepGoal}
+              unit=""
+            />
+            <ProgressCard
+              title="Water Intake"
+              current={waterIntake}
+              goal={waterGoal}
+              progress={waterProgress}
+              onGoalChange={setWaterGoal}
+              unit="ml"
+            />
+            <ProgressCard
+              title="Calories"
+              current={netCalories}
+              goal={calorieGoal}
+              progress={calorieProgress}
+              onGoalChange={setCalorieGoal}
+              unit="kcal"
             />
           </View>
-        </View>
-      </View>
-    </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -38,14 +102,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#181A20',
+  },
+  scrollContent: {
+    flexGrow: 1,
     padding: 16,
+    paddingTop: 60,
   },
   title: {
     color: '#4FC3F7',
     fontSize: 28,
     fontWeight: 'bold',
     alignSelf: 'center',
-    marginTop: 60,
     marginBottom: 16,
     letterSpacing: 1.5,
   },

@@ -36,6 +36,10 @@ export default function DiaryScreen() {
     setFoodCalories,
     exerciseCalories,
     setExerciseCalories,
+    waterIntake,
+    setWaterIntake,
+    waterGoal,
+    setWaterGoal,
   } = useFitness();
   const remainingCalories = calorieGoal - foodCalories + exerciseCalories;
 
@@ -59,7 +63,6 @@ export default function DiaryScreen() {
   const [waterAmount, setWaterAmount] = useState('');
   const [waterUnit, setWaterUnit] = useState('ml');
   const [waterLog, setWaterLog] = useState<WaterLog>([]);
-  const [waterGoal, setWaterGoal] = useState(2000); // default 2000 ml
   const [waterGoalInput, setWaterGoalInput] = useState('');
 
   // Calculate total water logged
@@ -98,8 +101,14 @@ export default function DiaryScreen() {
   const addWater = (amount?: string) => {
     const value = Number(amount || waterAmount);
     if (!value) return;
-    setWaterLog(prev => [...prev, { amount: value, unit: waterUnit }]);
+    const newWaterLog = [...waterLog, { amount: value, unit: waterUnit }];
+    setWaterLog(newWaterLog);
     setWaterAmount('');
+    
+    // Update water intake in FitnessContext
+    const totalWater = newWaterLog.reduce((sum, entry) => 
+      sum + (entry.unit === 'ml' ? entry.amount : entry.amount * 29.5735), 0);
+    setWaterIntake(totalWater);
   };
 
   const handleWaterPreset = (preset: number) => {
@@ -179,7 +188,7 @@ export default function DiaryScreen() {
           <Text style={styles.cardTitle}>Water</Text>
           {/* Water bottles emoji */}
           <View style={{ alignItems: 'center', marginVertical: 12 }}>
-            <Text style={{ fontSize: 60 }}>🧴🧴🧴</Text>
+            <Text style={{ fontSize: 60 }}>🥛🥛🥛</Text>
           </View>
           {/* Water Goal Input */}
           <View style={styles.waterGoalRow}>

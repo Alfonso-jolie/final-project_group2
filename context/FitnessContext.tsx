@@ -12,6 +12,10 @@ interface FitnessContextType {
   setSteps: (n: number) => void;
   stepGoal: number;
   setStepGoal: (n: number) => void;
+  waterIntake: number;
+  setWaterIntake: (n: number) => void;
+  waterGoal: number;
+  setWaterGoal: (n: number) => void;
 }
 
 const FitnessContext = createContext<FitnessContextType | undefined>(undefined);
@@ -22,6 +26,8 @@ export function FitnessProvider({ children }: { children: ReactNode }) {
   const [exerciseCalories, setExerciseCalories] = useState(0);
   const [steps, setSteps] = useState(0);
   const [stepGoal, setStepGoal] = useState(10000);
+  const [waterIntake, setWaterIntake] = useState(0);
+  const [waterGoal, setWaterGoal] = useState(2000); // Default 2L water goal
 
   // Real-time pedometer logic
   useEffect(() => {
@@ -65,6 +71,10 @@ export function FitnessProvider({ children }: { children: ReactNode }) {
         setSteps,
         stepGoal,
         setStepGoal,
+        waterIntake,
+        setWaterIntake,
+        waterGoal,
+        setWaterGoal,
       }}
     >
       {children}
